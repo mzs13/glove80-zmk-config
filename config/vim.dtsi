@@ -1,0 +1,442 @@
+#include "zmk_helpers.h"
+
+//These layer numbers must be defined elsewhere
+//LVIM VVIM
+
+//POS_* keyboard positions used within must be defined elsewhere.
+
+
+#define CONCAT_INNER(s, r) s##r
+#define CONCAT(s, r)  CONCAT_INNER(s, r)
+
+#define DEC1_9 8
+#define DEC1_8 7
+#define DEC1_7 6
+#define DEC1_6 5
+#define DEC1_5 4
+#define DEC1_4 3
+#define DEC1_3 2
+#define DEC1_2 1
+#define DEC1_1 0
+
+
+#define DEC1(x) DEC1_##x
+
+
+#define REPEAT0(x) &none
+#define REPEAT1(x) x
+#define REPEAT2(x) x REPEAT1(x)
+#define REPEAT3(x) x REPEAT2(x)
+#define REPEAT4(x) x REPEAT3(x)
+#define REPEAT5(x) x REPEAT4(x)
+#define REPEAT6(x) x REPEAT5(x)
+#define REPEAT7(x) x REPEAT6(x)
+#define REPEAT8(x) x REPEAT7(x)
+#define REPEAT9(x) x REPEAT8(x)
+#define REPEATN(n, x) CONCAT(REPEAT,n)(x)
+
+
+
+#define TAP &macro_tap
+#define REL &macro_release
+#define PRESS &macro_press
+#define PAUSE &macro_pause_for_release
+
+#define KP_CUT 		&kp LC(X)
+#define KP_COPY 		&kp LC(C)
+#define KP_PASTE 		&kp LC(V)
+
+#define KP_DEL		&kp DEL
+#define KP_SPACE		&kp SPACE
+#define KP_RET		&kp RET
+
+#define KP_HOME		&kp HOME
+#define KP_END		&kp END
+#define KP_RIGHT		&kp RIGHT
+#define KP_LEFT		&kp LEFT
+#define KP_UP		&kp UP
+#define KP_DOWN		&kp DOWN
+
+#define KP_WORD(dir) 	&kp LC(dir)
+#define KP_LS_WORD(dir) 	&kp LS(LC(dir))
+#define KP_LS_EOL	 	&kp LS(END)
+
+#define LSHFT_OFF		PRESS &kg LSHFT //this inhibts/gates LSHFT
+#define LSHFT_ON		REL &kg LSHFT //this removes the gate
+#define RSHFT_ON		PRESS &kp RSHFT
+#define RSHFT_OFF		REL &kp RSHFT
+
+#define SUPRESS_RSHFT(CMD)	RSHFT_OFF >,< CMD >,< RSHFT_ON
+
+#define VVIM_OFF		TAP &toff VVIM
+#define VVIM_ON		RSHFT_ON >,< TAP &tog VVIM
+#define VIM_OFF 		TAP &toff LVIM &toff CMD >,< VVIM_OFF
+
+#define SOL		TAP KP_HOME
+#define EOL		TAP KP_END
+#define SOD		TAP &kp LC(HOME)
+#define EOD		TAP &kp LC(END)
+#define INSERT_LINE_AFTER	EOL KP_RET
+#define INSERT_LINE_BEFORE	SOL KP_RET KP_UP
+#define CUT_WORD		TAP KP_LS_WORD(RIGHT) KP_CUT
+#define CUT_TO_EOL 		TAP KP_LS_EOL KP_CUT
+#define CUT_LINE 		TAP KP_HOME KP_LS_EOL KP_CUT
+#define CLEAR_LINE		CUT_LINE >,< INSERT_LINE_BEFORE
+#define COPY_WORD		TAP KP_LS_WORD(RIGHT) KP_COPY
+#define COPY_LINE 		TAP KP_HOME KP_LS_EOL KP_COPY
+
+#define VIM_LEADER_KEY( name, sequences ) ZLEADER_KEY( name , 3000, sequences )
+
+
+#define VIM_NUM_KEY(n) \
+DEFZ { \
+    BEHAVIORZ { \
+	VIM_LEADER_KEY( vcm_##n, \
+	    ZLEADER_SEQUENCE( vcm_##n##x, POS_X, &mac_vim_##n##x ) \
+	    ZLEADER_SEQUENCE( vcm_##n##w, POS_W, &mac_vim_##n##w ) \
+	    ZLEADER_SEQUENCE( vcm_##n##cc, POS_C POS_C, &mac_vim_##n##cc ) \
+	    ZLEADER_SEQUENCE( vcm_##n##cw, POS_C POS_W, &mac_vim_##n##cw ) \
+	    ZLEADER_SEQUENCE( vcm_##n##dd, POS_D POS_D, &mac_vim_##n##dd ) \
+	    ZLEADER_SEQUENCE( vcm_##n##dw, POS_D POS_W, &mac_vim_##n##dw ) \
+	    ZLEADER_SEQUENCE( vcm_##n##yy, POS_Y POS_Y, &mac_vim_##n##yy ) \
+	    ZLEADER_SEQUENCE( vcm_##n##yw, POS_Y POS_W, &mac_vim_##n##yw ) \
+	    ZLEADER_SEQUENCE( vcm_##n##G, POS_Z POS_G, &mac_vim_##n##G ) \
+	) \
+    }; \
+    MACROZ { \
+	ZMACRO0( mac_vim_##n##x \
+			,<TAP REPEATN(n, &kp LS(RIGHT)) KP_CUT> \
+			) \
+	ZMACRO0( mac_vim_##n##w \
+			,<TAP REPEATN(n, KP_WORD(RIGHT))> \
+			) \
+	ZMACRO0( mac_vim_##n##cc \
+			,<VIM_OFF>, <TAP KP_HOME>, <PRESS &kp LSHFT> \
+			,<TAP REPEATN(DEC1(n), KP_DOWN) KP_END KP_CUT> \
+			,<REL &kp LSHFT>, <INSERT_LINE_BEFORE> \
+			) \
+	ZMACRO0( mac_vim_##n##cw \
+			,<VIM_OFF>, <PRESS &kp LSHFT> \
+			,<TAP REPEATN(n, KP_WORD(RIGHT)) KP_CUT> \
+			,<REL &kp LSHFT> \
+			) \
+	ZMACRO0( mac_vim_##n##dd \
+			,<TAP KP_HOME>, <PRESS &kp LSHFT> \
+			,<TAP REPEATN(DEC1(n), KP_DOWN) KP_END KP_CUT> \
+			,<REL &kp LSHFT> \
+			) \
+	ZMACRO0( mac_vim_##n##dw \
+			,<PRESS &kp LSHFT> \
+			,<TAP REPEATN(n, KP_WORD(RIGHT)) KP_CUT> \
+			,<REL &kp LSHFT> \
+			) \
+	ZMACRO0( mac_vim_##n##yy \
+			,<TAP KP_HOME>, <PRESS &kp LSHFT> \
+			,<TAP REPEATN(DEC1(n), KP_DOWN) KP_END KP_COPY> \
+			,<REL &kp LSHFT>, <TAP KP_LEFT>  \
+			) \
+	ZMACRO0( mac_vim_##n##yw \
+			,<PRESS &kp LSHFT> \
+			,<TAP REPEATN(n, KP_WORD(RIGHT)) KP_COPY> \
+			,<REL &kp LSHFT>, <TAP KP_LEFT>\
+			) \
+	ZMACRO0( mac_vim_##n##G \
+			,<SOD>, <TAP REPEATN(DEC1(n), KP_DOWN)> \
+			) \
+    }; \
+};
+
+
+//These will genereate macros for the standard repeat sequences.
+//Number key is the initial leader.  eg. 3dd, 3yy, 3dw, etc.
+//These will genereate macros for these repeat sequences.
+//The same macros will be used for all repeat sequences.  e.g. 3dd == d3d.  &mac_vim_3dd used for d3d
+VIM_NUM_KEY( 1 )
+VIM_NUM_KEY( 2 )
+VIM_NUM_KEY( 3 )
+VIM_NUM_KEY( 4 )
+VIM_NUM_KEY( 5 )
+VIM_NUM_KEY( 6 )
+VIM_NUM_KEY( 7 )
+VIM_NUM_KEY( 8 )
+VIM_NUM_KEY( 9 )
+
+#define VIM_REPEAT_SEQ( cmd, cnt, type, pos ) ZLEADER_SEQUENCE( vcm_##cmd##cnt##type, POS_##cnt pos, &mac_vim_##cnt##cmd##type )
+
+#define VIM_REPEAT_SEQUENCES( cmd, type, pos )  \
+	VIM_REPEAT_SEQ( cmd, 2, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 3, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 4, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 5, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 6, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 7, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 8, type, pos ) \
+	VIM_REPEAT_SEQ( cmd, 9, type, pos )
+
+DEFZ {
+
+    layer_listeners {
+        compatible = "zmk,layer-listeners";
+
+        vvim_exit{
+            layers = <VVIM>;
+            bindings = <&none &vvim_clear>;
+        };
+
+        vim_exit{
+            layers = <LVIM>;
+            bindings = <&none &vvim_off>;
+        };
+    };
+
+
+    BEHAVIORZ {
+
+	VIM_LEADER_KEY( vcm_c,
+	    ZLEADER_SEQUENCE( vcm_cc, POS_C, &mac_vim_1cc )
+	    VIM_REPEAT_SEQUENCES( c, c, POS_C )
+
+	    ZLEADER_SEQUENCE( vcm_cw, POS_W, &mac_vim_1cw )
+	    VIM_REPEAT_SEQUENCES( c, w, POS_W )
+	)
+
+	VIM_LEADER_KEY( vcm_d,
+	    ZLEADER_SEQUENCE( vcm_dd, POS_D, &mac_vim_1dd )
+	    VIM_REPEAT_SEQUENCES( d, d, POS_D )
+
+	    ZLEADER_SEQUENCE( vcm_dw, POS_W, &mac_vim_1dw )
+	    VIM_REPEAT_SEQUENCES( d, w, POS_W )
+
+	)
+
+	VIM_LEADER_KEY( vcm_g,
+	    ZLEADER_SEQUENCE( vcm_gg, POS_G, &mac_vim_1G )
+	)
+
+	VIM_LEADER_KEY( vcm_y,
+	    ZLEADER_SEQUENCE( vcm_yy, POS_Y, &mac_vim_1yy )
+	    VIM_REPEAT_SEQUENCES( y, y, POS_Y )
+
+	    ZLEADER_SEQUENCE( vcm_yw, POS_W, &mac_vim_1yw )
+	    VIM_REPEAT_SEQUENCES( y, w, POS_W )
+
+	)
+
+	ZMOD_MORPH( vim_a,		MOD_LSFT,	&mac_vim_a,	&mac_vim_shft_a )
+	ZMOD_MORPH( vim_c,		MOD_LSFT,	&vcm_c,	&mac_vim_shft_c )
+	ZMOD_MORPH( vim_d,		MOD_LSFT,	&vcm_d,	&mac_vim_shft_d )
+	ZMOD_MORPH( vim_e,		MOD_LSFT,	&mac_vim_e,	&mac_vim_shft_e )
+	ZMOD_MORPH( vim_g,		MOD_LSFT,	&vcm_g,	&mac_vim_shft_g )
+	ZMOD_MORPH( vim_i,		MOD_LSFT,	&vim_off,	&mac_vim_shft_i )
+	ZMOD_MORPH( vim_j,		MOD_LSFT,	&kp DOWN,	&mac_vim_shft_j )
+	ZMOD_MORPH( vim_o,		MOD_LSFT,	&mac_vim_o,	&mac_vim_shft_o )
+	ZMOD_MORPH( vim_p,		MOD_LSFT,	&mac_vim_p,	&mac_vim_shft_p )
+	ZMOD_MORPH( vim_s,		MOD_LSFT,	&mac_vim_s,	&mac_vim_shft_s )
+	ZMOD_MORPH( vim_v,		MOD_LSFT,	&mac_vim_v,	&mac_vim_shft_v )
+	ZMOD_MORPH( vim_x,		MOD_LSFT,	&mac_vim_1x,	&mac_vim_shft_x )
+	ZMOD_MORPH( vim_y,		MOD_LSFT,	&vcm_y,	&mac_vim_shft_y )
+
+	ZMOD_MORPH( vim_1,		MOD_LSFT,	&vcm_1,	_x_ )
+	ZMOD_MORPH( vim_2,		MOD_LSFT,	&vcm_2,	_x_ )
+	ZMOD_MORPH( vim_3,		MOD_LSFT,	&vcm_3,	_x_ )
+	ZMOD_MORPH( vim_4,		MOD_LSFT,	&vcm_4,	&mac_vim_dllr )
+	ZMOD_MORPH( vim_5,		MOD_LSFT,	&vcm_5,	_x_ )
+	ZMOD_MORPH( vim_6,		MOD_LSFT,	&vcm_6,	&kp HOME )
+	ZMOD_MORPH( vim_7,		MOD_LSFT,	&vcm_7,	_x_ )
+	ZMOD_MORPH( vim_8,		MOD_LSFT,	&vcm_8,	&mac_vim_star )
+	ZMOD_MORPH( vim_9,		MOD_LSFT,	&vcm_9,	_x_ )
+
+	ZMOD_MORPH( vvim_c,		MOD_LSFT,	&mac_vvim_c,	&mac_vvim_shft_c )
+	ZMOD_MORPH( vvim_d,		MOD_LSFT,	&mac_vvim_d,	&mac_vvim_shft_d )
+	ZMOD_MORPH( vvim_p,		MOD_LSFT,	&mac_vvim_p,	&mac_vvim_p )
+	ZMOD_MORPH( vvim_s,		MOD_LSFT,	&mac_vvim_s,	&mac_vvim_shft_s )
+	ZMOD_MORPH( vvim_x,		MOD_LSFT,	&mac_vvim_x,	&mac_vvim_shft_x )
+	ZMOD_MORPH( vvim_y,		MOD_LSFT,	&mac_vvim_y,	&mac_vvim_shft_y )
+    };
+
+};
+
+
+
+DEFZ {
+
+    MACROZ {
+	ZMACRO0( mac_vim_a
+			,<VIM_OFF KP_RIGHT>
+			)
+
+	ZMACRO0( mac_vim_shft_a
+			,<LSHFT_OFF>, <VIM_OFF>, <EOL KP_LEFT>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_c
+			,<LSHFT_OFF>, <VIM_OFF>
+			,<CUT_TO_EOL>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_d
+			,<LSHFT_OFF>, <CUT_TO_EOL KP_LEFT>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_e
+			,<TAP KP_RIGHT KP_RIGHT KP_WORD(RIGHT) KP_LEFT KP_LEFT>
+			)
+
+	ZMACRO0( mac_vim_shft_e
+			,<LSHFT_OFF>
+			,<TAP KP_RIGHT KP_WORD(RIGHT) KP_LEFT>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_g
+			,<LSHFT_OFF>, <EOD>, <SOL>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_i
+			,<LSHFT_OFF>, <VIM_OFF>, <SOL>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_j
+			,<LSHFT_OFF>
+			,<EOL KP_SPACE KP_DEL>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_o
+			,<VIM_OFF>, <INSERT_LINE_AFTER>
+			)
+
+	ZMACRO0( mac_vim_shft_o
+			,<LSHFT_OFF>, <VIM_OFF>
+			,<INSERT_LINE_BEFORE>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_p
+			,<TAP KP_RIGHT KP_PASTE>
+			)
+
+	ZMACRO0( mac_vim_shft_p
+			,<LSHFT_OFF>, <TAP KP_PASTE>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_s
+			,<VIM_OFF &kp LS(RIGHT) KP_CUT>
+			)
+
+
+	ZMACRO0( mac_vim_shft_s
+			,<LSHFT_OFF>, <VIM_OFF>
+			,<CLEAR_LINE>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_v
+			,<VVIM_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_v
+			,<LSHFT_OFF>
+			,<SOL>
+			,<LSHFT_ON>, <VVIM_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_x
+			,<LSHFT_OFF>
+			,<TAP &kp LS(LEFT) KP_CUT>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_shft_y
+			,<LSHFT_OFF>
+			,<COPY_LINE KP_LEFT>
+			,<LSHFT_ON>
+			)
+
+	ZMACRO0( vim_off
+			,<VIM_OFF>
+			)
+
+	ZMACRO0( vvim_off
+			,<VVIM_OFF>
+			)
+
+			//first RIGHT ensures something is selected
+			//the second RIGHT moves the cursor to the end of the selection and clears selection.
+			//The LEFT moves it back into the original positon
+			//This logic does not work on the last character of the document
+	ZMACRO0( vvim_clear
+			,<TAP KP_RIGHT>, <RSHFT_OFF>, <TAP KP_RIGHT KP_LEFT>
+			)
+
+
+	ZMACRO0( mac_vvim_c
+			,<SUPRESS_RSHFT(TAP KP_CUT)>
+			,<VIM_OFF>
+			)
+
+
+	ZMACRO0( mac_vvim_shft_c
+			,<LSHFT_OFF>
+			,<SUPRESS_RSHFT(CLEAR_LINE)>
+			,<VIM_OFF>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vvim_d
+			,<SUPRESS_RSHFT(TAP KP_CUT)>
+			,<VVIM_OFF>
+			)
+
+	ZMACRO0( mac_vvim_shft_d
+			,<LSHFT_OFF>
+			,<SUPRESS_RSHFT(CUT_LINE)>
+			,<VVIM_OFF>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vvim_p
+			,<SUPRESS_RSHFT(TAP KP_PASTE)>
+			,<VVIM_OFF>
+			)
+
+	ZMACRO0( mac_vvim_s
+			,<SUPRESS_RSHFT(TAP KP_CUT)>
+			,<VIM_OFF>
+			)
+
+	ZMACRO0( mac_vvim_shft_s
+			,<LSHFT_OFF>
+			,<SUPRESS_RSHFT(CLEAR_LINE)>
+			,<VIM_OFF> ,<LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vvim_x
+			,<SUPRESS_RSHFT(TAP KP_CUT)>
+			,<VVIM_OFF>
+			)
+
+	ZMACRO0( mac_vvim_shft_x
+			,<LSHFT_OFF>
+			,<SUPRESS_RSHFT(CUT_LINE)>
+			,<VVIM_OFF>, <LSHFT_ON>
+			)
+	ZMACRO0( mac_vvim_y
+			,<SUPRESS_RSHFT(TAP KP_COPY KP_LEFT)>
+			,<VVIM_OFF>
+			)
+	ZMACRO0( mac_vvim_shft_y
+			,<LSHFT_OFF>
+			,<SUPRESS_RSHFT(COPY_LINE KP_LEFT)>
+			,<VVIM_OFF>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_dllr
+			,<LSHFT_OFF>, <EOL KP_LEFT>, <LSHFT_ON>
+			)
+
+	ZMACRO0( mac_vim_star
+			,<LSHFT_OFF>, <TAP KP_WORD(LEFT) KP_LS_WORD(RIGHT) &kp LC(F)>, <LSHFT_ON>
+			)
+
+    };
+};

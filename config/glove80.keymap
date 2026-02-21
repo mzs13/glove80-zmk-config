@@ -5,16 +5,27 @@
 #include "behaviors.dtsi"
 
 // layers
-#define BASE    0 //Default layer applied when ZMK starts
-#define MRR     1 //flip sides (MIRROR)
-#define SYNUM   2 //Symbol-Number
-#define FN      3 //FNx layer
-#define NMPD    4 //Number pad
-#define CMD     5 //cmd layer geared toward WIN commands and left hand nav
-#define SYS     6 //utility fn.  Volume, etc.
-#define MGC     7 //moergo magic
+#define BASEIMP 0 //Default layer applied when ZMK starts
+#define MASK    1 //mask down to 48 keys
+#define BASE    2 //This layer has the combos for the BASEIMP layer
+#define MRR     3 //flip sides (MIRROR)
+#define SYNUM   4 //Symbol-Number
+#define FN      5 //FNx layer
+#define NMPD    6 //Number pad
+#define RVIM    7 //vim vim emu, triggered by CMD but only right side usable
+#define CMD     8 //cmd layer geared toward WIN commands and left hand nav
+#define LVIM    9 //vim emu where left side overrides CMD
+#define VVIM    10 //visual vim commands
+#define CVIM    11 //vim emu control cmds
+#define SVIM    12 //vim+symbol layer
+#define SYS     13 //utility fn.  Volume, etc.
+#define MGC     14 //moergo magic
 
-#define STD_LAYERS BASE NMPD SYNUM SYS
+#define STD_LAYERS BASEIMP BASE NMPD SYNUM SYS
+#define VIM_LAYERS LVIM VVIM RVIM CVIM SVIM
+
+
+#include "vim.dtsi"
 
 
 DEFZ {
@@ -41,12 +52,14 @@ DEFZ {
 
 	ZCOMBO( combo_L_K_1,	POS_L POS_K,		&mht LT FSLH,	FAST_COMBO,	STD_LAYERS )
 	ZCOMBO( combo_L_K_2,	POS_L POS_K,		&mht LALT ESC,	FAST_COMBO,	MRR )
-	ZCOMBO( combo_L_K_3,	POS_L POS_K,		&kp LC(F),	FAST_COMBO,	CMD )
+	ZCOMBO( combo_L_K_3,	POS_L POS_K,		&kp LC(F),	FAST_COMBO,	CMD VIM_LAYERS )
 
 	ZCOMBO( combo_X_C_1,	POS_X POS_C,		&kp LCTRL,	MED_COMBO,	STD_LAYERS MRR )
+	ZCOMBO( combo_X_C_2,	POS_X POS_C,		&mo CVIM,	MED_COMBO,	CMD VIM_LAYERS )
 	ZCOMBO( combo_X_C_3,	POS_X POS_C,		&sk LCTRL,	MED_COMBO,	FN )
 
 	ZCOMBO( combo_DOT_COMMA_1,	POS_DOT POS_COMMA,		&mht LCTRL MINUS,	MED_COMBO,	STD_LAYERS MRR )
+	ZCOMBO( combo_DOT_COMMA_2,	POS_DOT POS_COMMA,		&mo CVIM,	MED_COMBO,	CMD VIM_LAYERS )
 
 
 	ZCOMBO( combo_X_D_1,	POS_X POS_D,		&kp LC(LALT),	MED_COMBO,	STD_LAYERS MRR )
@@ -68,13 +81,15 @@ DEFZ {
 
 
 	//layers
-	ZCOMBO( combo_RHR1C1_RHR1C2,	RH_R1C1 RH_R1C2,		&to BASE,	SLOW_COMBO,	ALL_LAYERS )
-	ZCOMBO( combo_LHR1C1_LHR1C2,	LH_R1C1 LH_R1C2,		&to BASE,	SLOW_COMBO,	ALL_LAYERS )
+	ZCOMBO( combo_RHR1C1_RHR1C2,	RH_R1C1 RH_R1C2,		&to BASEIMP,	SLOW_COMBO,	ALL_LAYERS )
+	ZCOMBO( combo_LHR1C1_LHR1C2,	LH_R1C1 LH_R1C2,		&to BASEIMP,	SLOW_COMBO,	ALL_LAYERS )
 
 	ZCOMBO( combo_D_F_1,	POS_D POS_F,		&nl SYNUM SYNUM,	FAST_COMBO,	STD_LAYERS MRR )
 	ZCOMBO( combo_D_F_2,	POS_D POS_F,		&sl SYNUM,	FAST_COMBO,	FN )
+	ZCOMBO( combo_D_F_3,	POS_D POS_F,		&mo SVIM,	FAST_COMBO,	CMD VIM_LAYERS )
 
 	ZCOMBO( combo_K_J_1,	POS_K POS_J,		&mokp SYNUM SQT,	FAST_COMBO,	STD_LAYERS MRR )
+	ZCOMBO( combo_K_J_2,	POS_K POS_J,		&mo SVIM,	FAST_COMBO,	CMD VIM_LAYERS )
 
 	ZCOMBO( combo_E_F_1,	POS_E POS_F,		&mo FN, 	SLOW_COMBO,	BASE MRR )
 	ZCOMBO( combo_E_F_2,	POS_E POS_F,		&sl FN,	SLOW_COMBO,	FN )
@@ -133,10 +148,10 @@ DEFZ {
 	ZCOMBO( combo_LHR4C1_A_1,	LH_R4C1 POS_A,	&kp RET,	SLOW_COMBO,	ALL_LAYERS,		NORMAL_RELEASE )
 	ZCOMBO( combo_SQT_SEMI,	POS_SQT POS_SEMI,	&kp RET,	SLOW_COMBO,	ALL_LAYERS,		NORMAL_RELEASE )
 
-	ZCOMBO( combo_COMMA_M,	POS_COMMA POS_M,	&kp UNDER,	SLOW_COMBO,	STD_LAYERS CMD ,	NORMAL_RELEASE )
+	ZCOMBO( combo_COMMA_M,	POS_COMMA POS_M,	&kp UNDER,	SLOW_COMBO,	STD_LAYERS CMD VIM_LAYERS,	NORMAL_RELEASE )
 	ZCOMBO( combo_C_V,		POS_C POS_V,	&kp UNDER,	SLOW_COMBO,	MRR,		NORMAL_RELEASE )
 
-	ZCOMBO( combo_O_U,		POS_O POS_U,	&kp EQUAL,	FAST_COMBO,	STD_LAYERS CMD ,	NORMAL_RELEASE )
+	ZCOMBO( combo_O_U,		POS_O POS_U,	&kp EQUAL,	FAST_COMBO,	STD_LAYERS CMD VIM_LAYERS,	NORMAL_RELEASE )
 	ZCOMBO( combo_W_R,		POS_W POS_R,	&kp EQUAL,	FAST_COMBO,	MRR,		NORMAL_RELEASE )
 
 	ZCOMBO( combo_A_F,		POS_A POS_F,	&mm_cw_caps,	MED_COMBO,	ALL_LAYERS,		NORMAL_RELEASE )
@@ -185,17 +200,42 @@ DEFZ {
 
 
 DEFZ {
+    COND_LAYERZ {
+        ZCOND_LAYER( base_layer,	BASE,	BASEIMP )
+        ZCOND_LAYER( cmd_layer,	RVIM,	CMD )
+    };
+
+
     LAYERZ {
 
         #define BASE_KEYMAP \
 	&kp F1,	&kp F2,	&kp F3,	&kp F4,	&kp F5,									&kp F6,	&kp F7,	&kp F8,	&kp F9,	&kp F10, \
 	&kp GRAVE,	&kp N1,	&kp N2,	&kp N3,	&kp N4,	&kp N5,							&kp N6,	&kp N7,	&kp N8,	&kp N9,	&kp N0,	&kp BSLH, \
-	&mt LALT Q,	&kp Q,	&kp W,	&kp E,	&kp R,	&kp T,							&kp Y,	&kp U,	&kp I,	&kp O,	&kp P,	&kp P, \
+	&mt LALT Q,	&kp Q,	&kp W,	&kp E,	&kp R,	&ak_T,							&kp Y,	&kp U,	&kp I,	&kp O,	&kp P,	&kp P, \
 	&mokp MRR TAB,	&htp LSHFT A,	&kp S,	&kp D,	&kp F,	&kp G,							&kp H,	&kp J,	&kp K,	&kp L,	&kp SEMI,	&mokp MRR SQT, \
-	&kp LCTRL,	&hpt LSHFT Z,	&kp X,	&kp C,	&kp V,	&kp B,	&kp BSPC,	&kp DEL,	&mo MRR,	&lt MRR C_MUTE,	&kp TAB,	&clt CMD SPACE,	&kp N,	&kp M,	&kp COMMA,	&kp DOT,	&ht LSHFT UP,	&ht LSHFT FSLH, \
-	&kp DEL,	&kp INS,	&mgc MGC 0,	&kp HOME,	&kp END,		&ht LSHFT SPACE,	&clt CMD TAB,	&mo FN,	&mokp SYS INS,	&mo DEL,	&ht LSHFT BSPC,		&kp PG_UP,	&kp PG_DN,	&kp LEFT,	&kp DOWN,	&kp RIGHT
+	&kp LCTRL,	&hpt LSHFT Z,	&kp X,	&kp C,	&kp V,	&kp B,	&mokp LVIM BSPC,	&kp DEL,	&mo MRR,	&lt MRR C_MUTE,	&kp TAB,	&clt CMD SPACE,	&kp N,	&kp M,	&kp COMMA,	&kp DOT,	&ht LSHFT UP,	&ht LSHFT FSLH, \
+	&kp DEL,	&kp INS,	&mgc MGC 0,	&kp HOME,	&kp END,		&ht LSHFT SPACE,	&clt CMD TAB,	&motg FN LVIM,	&mokp SYS INS,	&mokp LVIM DEL,	&ht LSHFT BSPC,		&kp PG_UP,	&kp PG_DN,	&kp LEFT,	&kp DOWN,	&kp RIGHT
 
-        ZKEYMAP( BASE, GLOVE80_MAP( BASE_KEYMAP ) )
+        ZKEYMAP( BASEIMP, GLOVE80_MAP( BASE_KEYMAP ) )
+
+        ZKEYMAP( MASK,
+	_x_	_x_	_x_	_x_	_x_									_x_	_x_	_x_	_x_	_x_
+	_x_	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	_x_	_x_
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___
+	_x_	_x_	___	_x_	_x_		___	___	___	___	___	___		_x_	_x_	_x_	_x_	_x_
+        )
+
+        //Totally transparent.  Only for combos so they are no hidden by MASK when it is on
+        ZKEYMAP( BASE,
+	___	___	___	___	___									___	___	___	___	___
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___	___
+	___	___	___	___	___		___	___	___	___	___	___		___	___	___	___	___
+        )
 
 
         ZKEYMAP( MRR, GLOVE80_MIRROR( BASE_KEYMAP ) )
@@ -231,23 +271,65 @@ DEFZ {
 
 
 
+        #define VIM_KEYMAP  \
+	___,	___,	___,	___,	___,									___,	___,	___,	___,	___, \
+	_x_,	&vim_1,	&vim_2,	&vim_3,	&vim_4,	&vim_5,							&vim_6,	&vim_7,	&vim_8,	&vim_9,	&kp HOME,	___, \
+	___,	_x_,	&kp LC(RIGHT),	&vim_e,	_x_,	_x_,							&vim_y,	&kp LC(Z),	&vim_i,	&vim_o,	&vim_p,	___, \
+	___,	&vim_a,	&vim_s,	&vim_d,	_x_,	&vim_g,							&kp LEFT,	&vim_j,	&kp UP,	&kp RIGHT,	_x_,	___, \
+	___,	&ka LSHFT,	&vim_x,	&vim_c,	&vim_v,	&kp LC(LEFT),	&tog LVIM,	___,	___,	___,	___,	&tog LVIM,	&kp F3,	&kp LC(M),	_x_,	_x_,	___,	___, \
+	___,	___,	___,	___,	___,		___,	___,	___,	___,	___,	___,		___,	___,	___,	___,	___
+
+
+        ZKEYMAP( RVIM, GLOVE80_MAP(VIM_KEYMAP) )
+
         #define CMD_KEYMAP  \
 	___,	___,	___,	___,	___,									___,	___,	___,	___,	___, \
 	_x_,	_x_,	&kp LC(HOME),	&kp LC(UP),	&kp LC(DOWN),	&kp LC(END),							___,	___,	___,	___,	___,	___, \
 	___,	&kt RSHFT,	&kp LC(RIGHT),	&kp PG_UP,	&kp PG_DN,	&kp LC(Y),							___,	___,	___,	___,	___,	___, \
 	&desel,	&ht LSHFT LC(A),	&kp LEFT,	&kp UP,	&kp DOWN,	&kp RIGHT,							&kp LEFT,	&kp DOWN,	&kp UP,	&kp RIGHT,	___,	___, \
 	___,	&ht LSHFT LC(Z),	&clip LC(X),	&clip LC(C),	&clip LC(V),	&kp LC(LEFT),	&tog CMD,	___,	___,	___,	___,	&tog CMD,	___,	___,	___,	___,	___,	___, \
-	&kp LS(DEL),	&kp LC(INS),	&kp LS(INS),	&kp HOME,	&kp END,		___,	___,	___,	___,	&kp LC(DEL),	&ht LSHFT LC(BSPC),		___,	___,	___,	___,	___
+	&kp LS(DEL),	&kp LC(INS),	&kp LS(INS),	&kp HOME,	&kp END,		___,	___,	___,	___,	&mokp LVIM LC(DEL),	&ht LSHFT LC(BSPC),		___,	___,	___,	___,	___
 
 
         ZKEYMAP( CMD, GLOVE80_MAP(CMD_KEYMAP) )
+
+        ZKEYMAP( LVIM, GLOVE80_MAP(VIM_KEYMAP) )
+
+        ZKEYMAP( VVIM,
+	___	___	___	___	___									___	___	___	___	___
+	___	___	___	___	___	___							___	___	___	___	___	___
+	___	___	___	___	___	___							&vvim_y	___	___	___	&vvim_p	___
+	___	___	&vvim_s	&vvim_d	___	___							___	___	___	___	___	___
+	___	___	&vvim_x	&vvim_c	&vvim_off	___	___	___	___	___	___	___	___	___	___	___	___	___
+	___	___	___	___	___		___	___	___	___	___	___		___	___	___	___	___
+        )
+
+
+
+        ZKEYMAP( CVIM,
+	___	___	___	___	___									___	___	___	___	___
+	_x_	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	_x_	_x_
+	___	_x_	_x_	_x_	&kp LC(Y)	_x_							_x_	&kp PG_UP	_x_	_x_	_x_	_x_
+	___	_x_	_x_	&kp PG_DN	&kp PG_DN	_x_							&kp LC(LEFT)	&kp LC(DOWN)	&kp LC(UP)	&kp LC(RIGHT)	_x_	_x_
+	___	___	_x_	_x_	_x_	&kp PG_UP	___	___	___	___	___	___	_x_	_x_	_x_	___	___	___
+	___	___	___	___	___		___	___	___	___	___	___		___	___	___	___	___
+        )
+
+        ZKEYMAP( SVIM,
+	___	___	___	___	___									___	___	___	___	___
+	_x_	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	_x_	_x_
+	___	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	_x_	_x_
+	___	_x_	_x_	_x_	_x_	_x_							&kp HOME	_x_	_x_	_x_	_x_	_x_
+	___	_x_	_x_	_x_	&kp END	_x_	___	___	___	___	___	___	_x_	_x_	_x_	_x_	&kp HOME	_x_
+	___	___	___	___	___		___	___	___	___	___	___		___	___	___	___	___
+        )
 
         ZKEYMAP( SYS,
 	_x_	_x_	_x_	_x_	_x_									_x_	_x_	_x_	_x_	_x_
 	_x_	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	_x_	_x_
 	___	_x_	_x_	_x_	_x_	_x_							_x_	_x_	_x_	_x_	&kp PSCRN	_x_
 	___	_x_	&kp SLCK	_x_	_x_	_x_							&kp C_BRI_DN	&kp C_VOL_DN	&kp C_VOL_UP	&kp C_BRI_UP	_x_	_x_
-	___	_x_	_x_	_x_	_x_	&kp PAUSE_BREAK	&tog SYS	___	___	___	___	&tog SYS	&kp KP_NLCK	&kp C_MUTE	_x_	_x_	_x_	_x_
+	___	_x_	&tog MASK	_x_	_x_	&kp PAUSE_BREAK	&tog SYS	___	___	___	___	&tog SYS	&kp KP_NLCK	&kp C_MUTE	_x_	_x_	_x_	_x_
 	___	___	_x_	_x_	_x_		___	___	___	___	___	___		_x_	_x_	_x_	_x_	_x_
         )
 
