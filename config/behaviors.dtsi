@@ -1,0 +1,53 @@
+#pragma once
+
+#include <behaviors.dtsi>
+#include <behaviors/num_word.dtsi>
+#include "alt_tab.dtsi"
+
+
+&sk { release-after-ms = <1500>; };
+&sl { release-after-ms = <2000>; };
+&mt { quick-tap-ms = <200>; };
+
+/ {
+    behaviors {
+        toff: toggle_layer_off_only {
+            compatible = "zmk,behavior-toggle-layer";
+            #binding-cells = <1>;
+            toggle-mode = "off";
+            locking;
+        };
+    };
+};
+
+
+/ {
+    behaviors {
+        ak_T: ak_T {
+            compatible = "zmk,behavior-adaptive-key";
+            #binding-cells = <0>;
+            bindings = <&kp T>;
+
+            vim_wq { trigger-keys = <W>; max-prior-idle-ms = <250>; bindings = <&kp Q>; };
+        };
+    };
+};
+
+
+/ {
+    behaviors {
+
+	ka: key_press_allow {
+            	    compatible = "zmk,behavior-gated-key";
+            	    #binding-cells = <1>;
+            	    label = "Key Press";
+	};
+
+	kg: gate_key_press {
+            	    compatible = "zmk,behavior-gated-key";
+            	    #binding-cells = <1>;
+            	    action = "gate";
+            	    label = "Gate Key Press";
+	};
+    };
+};

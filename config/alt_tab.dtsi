@@ -1,0 +1,13 @@
+
+/ {
+    behaviors {
+        alt_tab: alt_tabber {
+            compatible = "zmk,behavior-tri-state";
+            label = "ALT_TAB";
+            #binding-cells = <0>;
+            bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
+            ignored-key-positions = <POS_W POS_E POS_S POS_D POS_F POS_G POS_L POS_K POS_J POS_H>;
+        };
+    };
+};
+

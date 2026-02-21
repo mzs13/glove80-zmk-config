@@ -9,7 +9,8 @@ RUN <<EOF
     mkdir /config
     # Mirror ZMK repository to make it easier to reference both branches and
     # tags without remote namespacing
-    git clone --mirror https://github.com/moergo-sc/zmk /zmk
+    #git clone --mirror https://github.com/moergo-sc/zmk /zmk
+    git clone --mirror https://github.com/mzs13/zmk /zmk
     GIT_DIR=/zmk git worktree add --detach /src
 EOF
 
@@ -28,17 +29,20 @@ COPY --chmod=755 <<EOF /bin/entrypoint.sh
     set -euo pipefail
     : "\${BRANCH:=main}"
 
-    echo "Checking out \$BRANCH from moergo-sc/zmk" >&2
+    #echo "Checking out \$BRANCH from moergo-sc/zmk" >&2
+    echo "Checking out \$BRANCH from mzs13/zmk" >&2
     cd /src
     git fetch origin
     git checkout -q --detach "\$BRANCH"
 
     echo 'Building Glove80 firmware' >&2
     cd /config
-    nix-build ./config --arg firmware 'import /src/default.nix {}' -j2 -o /tmp/combined --show-trace
+    nix-build ./config --arg firmware 'import /src/default.nix {}' --arg pkgs 'import /src/nix/pinned-nixpkgs.nix {}' -j2 -o /tmp/combined --show-trace
     install -o "\$UID" -g "\$GID" /tmp/combined/glove80.uf2 ./glove80.uf2
 EOF
 
-ENTRYPOINT ["/bin/entrypoint.sh"]
+
+#ENTRYPOINT ["/bin/entrypoint.sh"]
+ENTRYPOINT ["bash"]
 
 # Run build.sh to use this file
